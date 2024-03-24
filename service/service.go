@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/fuad1502/improcroute/service/errorreporter"
 	"github.com/fuad1502/improcroute/service/imgproc"
 )
 
@@ -58,25 +59,23 @@ func checkMimeType(headerMimeTypes []string, validMimeTypes map[string]bool) boo
 //
 // Parameters: none
 func pngToJpg(w http.ResponseWriter, r *http.Request) {
+	reporter := errorreporter.ErrorReporter{FuncName: "pngToJpg"}
 	// Check if MIME type valid
 	validMimeTypes := map[string]bool{"image/png": true}
 	if !checkMimeType(r.Header["Content-Type"], validMimeTypes) {
-		http.Error(w, "error", http.StatusBadRequest)
-		log.Printf("pngToJpeg: invalid mime type\n")
+		reporter.Report(w, http.StatusBadRequest, fmt.Errorf("invalid MIME type"))
 		return
 	}
 
 	// Process
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "error", http.StatusInternalServerError)
-		log.Printf("pngToJpeg: cannot read body: %v\n", err)
+		reporter.Report(w, http.StatusInternalServerError, err)
 		return
 	}
 	respBody, err := imgproc.ConvertPngToJpg(body)
 	if err != nil {
-		http.Error(w, "error", http.StatusInternalServerError)
-		log.Printf("pngToJpeg: conversion failed: %v\n", err)
+		reporter.Report(w, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -97,41 +96,37 @@ func pngToJpg(w http.ResponseWriter, r *http.Request) {
 //
 // Parameters: `width` int REQUIRED, `height` int REQUIRED
 func resizeImage(w http.ResponseWriter, r *http.Request) {
+	reporter := errorreporter.ErrorReporter{FuncName: "resizeImage"}
 	// Check if MIME type valid
 	validMimeTypes := map[string]bool{"image/png": true, "image/jpg": true, "image/jpeg": true}
 	if !checkMimeType(r.Header["Content-Type"], validMimeTypes) {
-		http.Error(w, "error", http.StatusBadRequest)
-		log.Printf("resizeImage: invalid mime type\n")
+		reporter.Report(w, http.StatusBadRequest, fmt.Errorf("invalid MIME type"))
 		return
 	}
 
 	// Get width parameter
 	width, err := getIntParameter(r.URL.Query(), "width")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		log.Printf("resizeImage: %v\n", err)
+		reporter.Report(w, http.StatusInternalServerError, err)
 		return
 	}
 
 	// Get height parameter
 	height, err := getIntParameter(r.URL.Query(), "height")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		log.Printf("resizeImage: %v\n", err)
+		reporter.Report(w, http.StatusInternalServerError, err)
 		return
 	}
 
 	// Process
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "error", http.StatusInternalServerError)
-		log.Printf("resizeImage: cannot read body: %v\n", err)
+		reporter.Report(w, http.StatusInternalServerError, err)
 		return
 	}
 	respBody, err := imgproc.ResizeImage(body, width, height)
 	if err != nil {
-		http.Error(w, "error", http.StatusInternalServerError)
-		log.Printf("resizeImage: resize failed: %v\n", err)
+		reporter.Report(w, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -151,33 +146,30 @@ func resizeImage(w http.ResponseWriter, r *http.Request) {
 //
 // Parameters: `quality` int [0-100] REQUIRED
 func compressImage(w http.ResponseWriter, r *http.Request) {
+	reporter := errorreporter.ErrorReporter{FuncName: "compressImage"}
 	// Check if MIME type valid
 	validMimeTypes := map[string]bool{"image/png": true, "image/jpg": true, "image/jpeg": true}
 	if !checkMimeType(r.Header["Content-Type"], validMimeTypes) {
-		http.Error(w, "error", http.StatusBadRequest)
-		log.Printf("compressImage: invalid mime type\n")
+		reporter.Report(w, http.StatusBadRequest, fmt.Errorf("invalid MIME type"))
 		return
 	}
 
 	// Get quality parameter
 	quality, err := getIntParameterWithLimit(r.URL.Query(), "quality", 0, 100)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		log.Printf("compressImage: %v\n", err)
+		reporter.Report(w, http.StatusInternalServerError, err)
 		return
 	}
 
 	// Process
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "error", http.StatusInternalServerError)
-		log.Printf("compressImage: cannot read body: %v\n", err)
+		reporter.Report(w, http.StatusInternalServerError, err)
 		return
 	}
 	respBody, err := imgproc.CompressImage(body, quality)
 	if err != nil {
-		http.Error(w, "error", http.StatusInternalServerError)
-		log.Printf("compressImage: resize failed: %v\n", err)
+		reporter.Report(w, http.StatusInternalServerError, err)
 		return
 	}
 

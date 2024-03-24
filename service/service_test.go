@@ -65,16 +65,17 @@ func callApiWithFile(t *testing.T, route string, inputFilePath string, mimeType 
 	}
 	defer resp.Body.Close()
 
-	// Check header
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("Request failed: %v\n%s", resp.Status, string(logBuffer.Bytes()))
-	}
-
 	// Read body
 	outputBuffer, err := io.ReadAll(resp.Body)
 	if err != nil {
 		t.Fatalf("Failed to read reponse body: %v\n%s", err, string(logBuffer.Bytes()))
 	}
+
+	// Check header
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("Request failed: %v\n%v\n%s", resp.Status, string(outputBuffer), string(logBuffer.Bytes()))
+	}
+
 	return outputBuffer
 }
 
