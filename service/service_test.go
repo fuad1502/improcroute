@@ -2,8 +2,6 @@ package service
 
 import (
 	"bytes"
-	"encoding/base64"
-	"image"
 	"io"
 	"log"
 	"net/http"
@@ -90,7 +88,6 @@ func TestPngJpeg(t *testing.T) {
 	}
 
 	// Compare byte to byte between output and reference output
-	// TODO: decode then compare. Use image package
 	if len(outputBuffer) != len(refOutputBuffer) {
 		t.Fatalf("Output length (%v) differs from reference output (%v) length.\n", len(outputBuffer), len(refOutputBuffer))
 	}
@@ -112,7 +109,6 @@ func TestResizeImage(t *testing.T) {
 	}
 
 	// Compare byte to byte between output and reference output
-	// TODO: decode then compare. Use image package
 	if len(outputBuffer) != len(refOutputBuffer) {
 		t.Fatalf("Output length (%v) differs from reference output (%v) length.\n", len(outputBuffer), len(refOutputBuffer))
 	}
@@ -134,7 +130,6 @@ func TestCompressImage(t *testing.T) {
 	}
 
 	// Compare byte to byte between output and reference output
-	// TODO: decode then compare. Use image package
 	if len(outputBuffer) != len(refOutputBuffer) {
 		t.Fatalf("Output length (%v) differs from reference output (%v) length.\n", len(outputBuffer), len(refOutputBuffer))
 	}
