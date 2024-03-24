@@ -2,6 +2,8 @@ package service
 
 import (
 	"bytes"
+	"encoding/base64"
+	"image"
 	"io"
 	"log"
 	"net/http"
@@ -82,7 +84,7 @@ func callApiWithFile(t *testing.T, route string, inputFilePath string, mimeType 
 func TestPngJpeg(t *testing.T) {
 	outputBuffer := callApiWithFile(t, "PngToJpeg", "test_resource/input.png", "image/png", map[string]string{})
 
-	refOutputBuffer, err := os.ReadFile("test_resource/output_ref.jpg")
+	refOutputBuffer, err := os.ReadFile("test_resource/ref_png_to_jpg.jpg")
 	if err != nil {
 		t.Fatalf("Failed to read reference output file: %v\n", err)
 	}
@@ -145,4 +147,34 @@ func TestCompressImage(t *testing.T) {
 	if body := string(body); body != expected {
 		t.Fatalf("Expected: %v, Got: %v\n", expected, body)
 	}
+}
+
+func compareImage(buffer0 []byte, buffer1 []byte) (bool, error) {
+	reader0 := base64.NewDecoder(base64.StdEncoding, bytes.NewReader(buffer0))
+	m0, _, err := image.Decode(reader0)
+	if err != nil {
+		return false, err
+	}
+	bounds0 := m0.Bounds()
+
+	reader1 := base64.NewDecoder(base64.StdEncoding, bytes.NewReader(buffer1))
+	m1, _, err := image.Decode(reader1)
+	if err != nil {
+		return false, err
+	}
+	bounds1 := m1.Bounds()
+
+	if bounds1 != bounds0 {
+		return false, nil
+	}
+
+	for y := bounds0.Min.Y; y < bounds0.Max.Y; y++ {
+		for x := bounds0.Min.X; x < bounds0.Max.X; x++ {
+			if m0.At(x, y) != m1.At(x, y) {
+				return false, nil
+			}
+		}
+	}
+
+	return true, nil
 }
