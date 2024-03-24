@@ -144,33 +144,3 @@ func TestCompressImage(t *testing.T) {
 		}
 	}
 }
-
-func compareImage(buffer0 []byte, buffer1 []byte) (bool, error) {
-	reader0 := base64.NewDecoder(base64.StdEncoding, bytes.NewReader(buffer0))
-	m0, _, err := image.Decode(reader0)
-	if err != nil {
-		return false, err
-	}
-	bounds0 := m0.Bounds()
-
-	reader1 := base64.NewDecoder(base64.StdEncoding, bytes.NewReader(buffer1))
-	m1, _, err := image.Decode(reader1)
-	if err != nil {
-		return false, err
-	}
-	bounds1 := m1.Bounds()
-
-	if bounds1 != bounds0 {
-		return false, nil
-	}
-
-	for y := bounds0.Min.Y; y < bounds0.Max.Y; y++ {
-		for x := bounds0.Min.X; x < bounds0.Max.X; x++ {
-			if m0.At(x, y) != m1.At(x, y) {
-				return false, nil
-			}
-		}
-	}
-
-	return true, nil
-}
