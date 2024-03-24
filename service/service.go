@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/fuad1502/improcroute/service/imgproc"
 )
@@ -88,13 +89,69 @@ func pngToJpeg(w http.ResponseWriter, r *http.Request) {
 // resizeImage route handler. Resize an image based on the supplied percentage
 // parameter.
 //
-// Accepted MIME types: image/*
+// Accepted MIME types: image/png, image/jpg, image/jpeg
 //
-// Returned MIME types: image/*
+// Returned MIME types: same as input MIME type
 //
 // Parameters: `percentage` float
 func resizeImage(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "ResizeImage")
+	// Check if MIME type valid
+	validMimeTypes := map[string]bool{"image/png": true, "image/jpg": true, "image/jpeg": true}
+	if !checkMimeType(r.Header["Content-Type"], validMimeTypes) {
+		http.Error(w, "error", http.StatusBadRequest)
+		log.Printf("resizeImage: invalid mime type\n")
+		return
+	}
+
+	// Extract width
+	parameters := r.URL.Query()
+	widthParameter, ok := parameters["width"]
+	if !ok {
+		http.Error(w, "error", http.StatusBadRequest)
+		log.Printf("resizeImage: width parameter not supplied\n")
+		return
+	}
+	width, err := strconv.Atoi(widthParameter[0])
+	if err != nil {
+		http.Error(w, "error", http.StatusBadRequest)
+		log.Printf("resizeImage: width parameter must be an integer\n")
+		return
+	}
+
+	// Extract height
+	heightParameter, ok := parameters["height"]
+	if !ok {
+		http.Error(w, "error", http.StatusBadRequest)
+		log.Printf("resizeImage: height parameter not supplied\n")
+		return
+	}
+	height, err := strconv.Atoi(heightParameter[0])
+	if err != nil {
+		http.Error(w, "error", http.StatusBadRequest)
+		log.Printf("resizeImage: height parameter must be an integer\n")
+		return
+	}
+
+	// Process
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "error", http.StatusInternalServerError)
+		log.Printf("resizeImage: cannot read body: %v\n", err)
+		return
+	}
+	respBody, err := imgproc.ResizeImage(body, width, height)
+	if err != nil {
+		http.Error(w, "error", http.StatusInternalServerError)
+		log.Printf("resizeImage: resize failed: %v\n", err)
+		return
+	}
+
+	// Write response
+	w.WriteHeader(http.StatusOK)
+	w.Header().Add("Content-Type", "image/jpg")
+	if sentSize, err := w.Write(respBody); err != nil || sentSize != len(respBody) {
+		log.Printf("pngToJpeg: %v\n", err)
+	}
 }
 
 // compressImage route handler. Compress an image.

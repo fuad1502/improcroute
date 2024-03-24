@@ -28,7 +28,7 @@ func (portGetter *PortGetter) getUnusedPort() int {
 var portGetter = PortGetter{lowestUnusedPort: 8080}
 var waitServerStartDurationMilis time.Duration = 500
 
-func callApiWithFile(t *testing.T, route string, inputFilePath string, mimeType string) []byte {
+func callApiWithFile(t *testing.T, route string, inputFilePath string, mimeType string, parameters map[string]string) []byte {
 	t.Parallel()
 	var logBuffer bytes.Buffer
 	log.SetOutput(&logBuffer)
@@ -46,8 +46,20 @@ func callApiWithFile(t *testing.T, route string, inputFilePath string, mimeType 
 		t.Fatalf("Failed to read file: %v\n%s", err, string(logBuffer.Bytes()))
 	}
 
+	// Create query string
+	var queryString string
+	start := true
+	for key := range parameters {
+		if start {
+			queryString += key + "=" + parameters[key]
+			start = false
+		} else {
+			queryString += "&" + key + "=" + parameters[key]
+		}
+	}
+
 	// Send request
-	resp, err := http.Post("http://localhost:"+port+"/"+route, mimeType, bytes.NewReader(inputBuffer))
+	resp, err := http.Post("http://localhost:"+port+"/"+route+"?"+queryString, mimeType, bytes.NewReader(inputBuffer))
 	if err != nil {
 		t.Fatalf("Failed to issue GET request: %v\n%s", err, string(logBuffer.Bytes()))
 	}
@@ -68,7 +80,7 @@ func callApiWithFile(t *testing.T, route string, inputFilePath string, mimeType 
 
 // Tests pngJpeg handler.
 func TestPngJpeg(t *testing.T) {
-	outputBuffer := callApiWithFile(t, "PngToJpeg", "test_resource/input.png", "image/png")
+	outputBuffer := callApiWithFile(t, "PngToJpeg", "test_resource/input.png", "image/png", map[string]string{})
 
 	refOutputBuffer, err := os.ReadFile("test_resource/output_ref.jpg")
 	if err != nil {
@@ -89,27 +101,23 @@ func TestPngJpeg(t *testing.T) {
 
 // Tests resizeImage handler.
 func TestResizeImage(t *testing.T) {
-	t.Parallel()
-	var service ImprocrouteService
-	port := strconv.Itoa(portGetter.getUnusedPort())
-	go service.Start(":" + port)
-	defer service.Shutdown()
-	time.Sleep(waitServerStartDurationMilis * time.Millisecond)
+	parameters := map[string]string{"width": "500", "height": "500"}
+	outputBuffer := callApiWithFile(t, "ResizeImage", "test_resource/input.png", "image/png", parameters)
 
-	resp, err := http.Get("http://localhost:" + port + "/ResizeImage")
+	refOutputBuffer, err := os.ReadFile("test_resource/ref_resize_image.png")
 	if err != nil {
-		t.Fatalf("Failed to issue GET request\n")
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatalf("Failed to read reponse")
+		t.Fatalf("Failed to read reference output file: %v\n", err)
 	}
 
-	// Stub test
-	expected := "ResizeImage"
-	if body := string(body); body != expected {
-		t.Fatalf("Expected: %v, Got: %v\n", expected, body)
+	// Compare byte to byte between output and reference output
+	// TODO: decode then compare. Use image package
+	if len(outputBuffer) != len(refOutputBuffer) {
+		t.Fatalf("Output length (%v) differs from reference output (%v) length.\n", len(outputBuffer), len(refOutputBuffer))
+	}
+	for i := 0; i < len(outputBuffer); i++ {
+		if outputBuffer[i] != refOutputBuffer[i] {
+			t.Fatalf("Byte (%v) differs from reference output.\n", i)
+		}
 	}
 }
 

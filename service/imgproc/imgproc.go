@@ -11,3 +11,11 @@ func ConvertPngToJpg(inputBuffer []byte) ([]byte, error) {
 	}
 	return outputBuffer, nil
 }
+
+func ResizeImage(inputBuffer []byte, width int, height int) ([]byte, error) {
+	outputBuffer, err := bimg.NewImage(inputBuffer).ForceResize(width, height)
+	if err != nil {
+		return nil, err
+	}
+	return outputBuffer, nil
+}
