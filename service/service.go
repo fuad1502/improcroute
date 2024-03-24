@@ -2,9 +2,12 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
+	"math"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/fuad1502/improcroute/service/imgproc"
@@ -102,32 +105,19 @@ func resizeImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract width
-	parameters := r.URL.Query()
-	widthParameter, ok := parameters["width"]
-	if !ok {
-		http.Error(w, "error", http.StatusBadRequest)
-		log.Printf("resizeImage: width parameter not supplied\n")
-		return
-	}
-	width, err := strconv.Atoi(widthParameter[0])
+	// Get width parameter
+	width, err := getIntParameter(r.URL.Query(), "width")
 	if err != nil {
-		http.Error(w, "error", http.StatusBadRequest)
-		log.Printf("resizeImage: width parameter must be an integer\n")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf("resizeImage: %v\n", err)
 		return
 	}
 
-	// Extract height
-	heightParameter, ok := parameters["height"]
-	if !ok {
-		http.Error(w, "error", http.StatusBadRequest)
-		log.Printf("resizeImage: height parameter not supplied\n")
-		return
-	}
-	height, err := strconv.Atoi(heightParameter[0])
+	// Get height parameter
+	height, err := getIntParameter(r.URL.Query(), "height")
 	if err != nil {
-		http.Error(w, "error", http.StatusBadRequest)
-		log.Printf("resizeImage: height parameter must be an integer\n")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf("resizeImage: %v\n", err)
 		return
 	}
 
@@ -169,18 +159,11 @@ func compressImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract quality
-	parameters := r.URL.Query()
-	qualityParameter, ok := parameters["quality"]
-	if !ok {
-		http.Error(w, "error", http.StatusBadRequest)
-		log.Printf("compressImage: quality parameter not supplied\n")
-		return
-	}
-	quality, err := strconv.Atoi(qualityParameter[0])
+	// Get quality parameter
+	quality, err := getIntParameterWithLimit(r.URL.Query(), "quality", 0, 100)
 	if err != nil {
-		http.Error(w, "error", http.StatusBadRequest)
-		log.Printf("compressImage: quality parameter must be an integer\n")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf("compressImage: %v\n", err)
 		return
 	}
 
@@ -204,4 +187,23 @@ func compressImage(w http.ResponseWriter, r *http.Request) {
 	if sentSize, err := w.Write(respBody); err != nil || sentSize != len(respBody) {
 		log.Printf("compressImage: %v\n", err)
 	}
+}
+
+func getIntParameterWithLimit(parameters url.Values, name string, minLimit int, maxLimit int) (int, error) {
+	parameter, ok := parameters[name]
+	if !ok {
+		return 0, fmt.Errorf("parameter %v not found", name)
+	}
+	value, err := strconv.Atoi(parameter[0])
+	if err != nil {
+		return 0, fmt.Errorf("parameter %v value must be an integer", name)
+	}
+	if value < minLimit || value > maxLimit {
+		return 0, fmt.Errorf("parameter %v value exceed limit [%v-%v]", name, minLimit, maxLimit)
+	}
+	return value, nil
+}
+
+func getIntParameter(parameters url.Values, name string) (int, error) {
+	return getIntParameterWithLimit(parameters, name, math.MinInt, math.MaxInt)
 }
