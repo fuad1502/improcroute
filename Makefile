@@ -16,5 +16,5 @@ clean:
 	rm -rf cvwrapper/build
 
 .PHONY: test
-test: build
+test: cvwrapper/build/libcvwrapper.a
 	go test -v -parallel $$(nproc) ./...	
