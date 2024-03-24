@@ -14,7 +14,7 @@ import (
 )
 
 type PortGetter struct {
-	mtx sync.Mutex
+	mtx              sync.Mutex
 	lowestUnusedPort int
 }
 
@@ -47,7 +47,7 @@ func callApiWithFile(t *testing.T, route string, inputFilePath string, mimeType 
 	}
 
 	// Send request
-	resp, err := http.Post("http://localhost:" + port + "/" + route, mimeType, bytes.NewReader(inputBuffer))
+	resp, err := http.Post("http://localhost:"+port+"/"+route, mimeType, bytes.NewReader(inputBuffer))
 	if err != nil {
 		t.Fatalf("Failed to issue GET request: %v\n%s", err, string(logBuffer.Bytes()))
 	}
