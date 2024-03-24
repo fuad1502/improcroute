@@ -7,7 +7,6 @@ package imgproc
 import "C"
 
 import (
-	"github.com/h2non/bimg"
 	"unsafe"
 )
 
@@ -21,9 +20,14 @@ func ConvertPngToJpg(inputBuffer []byte) ([]byte, error) {
 }
 
 func ResizeImage(inputBuffer []byte, width int, height int) ([]byte, error) {
-	outputBuffer, err := bimg.NewImage(inputBuffer).ForceResize(width, height)
-	if err != nil {
-		return nil, err
-	}
-	return outputBuffer, nil
+	inputBufferC := (*C.uchar)(&inputBuffer[0])
+	inputSizeC := (C.int)(len(inputBuffer))
+	widthC := (C.int)(width)
+	heightC := (C.int)(height)
+	var outputSize int
+	outputSizePointerC := (*C.int)(unsafe.Pointer(&outputSize))
+
+	outputBufferC := C.resizeImage(inputBufferC, inputSizeC, widthC, heightC, outputSizePointerC)
+
+	return C.GoBytes(unsafe.Pointer(outputBufferC), (C.int)(outputSize)), nil
 }

@@ -106,7 +106,7 @@ func TestResizeImage(t *testing.T) {
 	parameters := map[string]string{"width": "500", "height": "500"}
 	outputBuffer := callApiWithFile(t, "ResizeImage", "test_resource/input.png", "image/png", parameters)
 
-	refOutputBuffer, err := os.ReadFile("test_resource/ref_resize_image.png")
+	refOutputBuffer, err := os.ReadFile("test_resource/ref_resize_image.jpg")
 	if err != nil {
 		t.Fatalf("Failed to read reference output file: %v\n", err)
 	}
