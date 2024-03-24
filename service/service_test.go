@@ -125,27 +125,23 @@ func TestResizeImage(t *testing.T) {
 
 // Tests compressImage handler.
 func TestCompressImage(t *testing.T) {
-	t.Parallel()
-	var service ImprocrouteService
-	port := strconv.Itoa(portGetter.getUnusedPort())
-	go service.Start(":" + port)
-	defer service.Shutdown()
-	time.Sleep(waitServerStartDurationMilis * time.Millisecond)
+	parameters := map[string]string{"quality": "50"}
+	outputBuffer := callApiWithFile(t, "CompressImage", "test_resource/input.png", "image/png", parameters)
 
-	resp, err := http.Get("http://localhost:" + port + "/CompressImage")
+	refOutputBuffer, err := os.ReadFile("test_resource/ref_compress_image.jpg")
 	if err != nil {
-		t.Fatalf("Failed to issue GET request\n")
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatalf("Failed to read reponse")
+		t.Fatalf("Failed to read reference output file: %v\n", err)
 	}
 
-	// Stub test
-	expected := "CompressImage"
-	if body := string(body); body != expected {
-		t.Fatalf("Expected: %v, Got: %v\n", expected, body)
+	// Compare byte to byte between output and reference output
+	// TODO: decode then compare. Use image package
+	if len(outputBuffer) != len(refOutputBuffer) {
+		t.Fatalf("Output length (%v) differs from reference output (%v) length.\n", len(outputBuffer), len(refOutputBuffer))
+	}
+	for i := 0; i < len(outputBuffer); i++ {
+		if outputBuffer[i] != refOutputBuffer[i] {
+			t.Fatalf("Byte (%v) differs from reference output.\n", i)
+		}
 	}
 }
 

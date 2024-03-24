@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -91,7 +90,7 @@ func pngToJpeg(w http.ResponseWriter, r *http.Request) {
 //
 // Accepted MIME types: image/png, image/jpg, image/jpeg
 //
-// Returned MIME types: same as input MIME type
+// Returned MIME types: image/png
 //
 // Parameters: `percentage` float
 func resizeImage(w http.ResponseWriter, r *http.Request) {
@@ -148,9 +147,9 @@ func resizeImage(w http.ResponseWriter, r *http.Request) {
 
 	// Write response
 	w.WriteHeader(http.StatusOK)
-	w.Header().Add("Content-Type", "image/jpg")
+	w.Header().Add("Content-Type", "image/png")
 	if sentSize, err := w.Write(respBody); err != nil || sentSize != len(respBody) {
-		log.Printf("pngToJpeg: %v\n", err)
+		log.Printf("resizeImage: %v\n", err)
 	}
 }
 
@@ -158,7 +157,51 @@ func resizeImage(w http.ResponseWriter, r *http.Request) {
 //
 // Accepted MIME types: image/*
 //
-// Returned MIME types: image/*
+// Returned MIME types: image/jpg, image/jpeg
+//
+// Parameters: `quality` int [0-100]
 func compressImage(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "CompressImage")
+	// Check if MIME type valid
+	validMimeTypes := map[string]bool{"image/png": true, "image/jpg": true, "image/jpeg": true}
+	if !checkMimeType(r.Header["Content-Type"], validMimeTypes) {
+		http.Error(w, "error", http.StatusBadRequest)
+		log.Printf("compressImage: invalid mime type\n")
+		return
+	}
+
+	// Extract quality
+	parameters := r.URL.Query()
+	qualityParameter, ok := parameters["quality"]
+	if !ok {
+		http.Error(w, "error", http.StatusBadRequest)
+		log.Printf("compressImage: quality parameter not supplied\n")
+		return
+	}
+	quality, err := strconv.Atoi(qualityParameter[0])
+	if err != nil {
+		http.Error(w, "error", http.StatusBadRequest)
+		log.Printf("compressImage: quality parameter must be an integer\n")
+		return
+	}
+
+	// Process
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "error", http.StatusInternalServerError)
+		log.Printf("compressImage: cannot read body: %v\n", err)
+		return
+	}
+	respBody, err := imgproc.CompressImage(body, quality)
+	if err != nil {
+		http.Error(w, "error", http.StatusInternalServerError)
+		log.Printf("compressImage: resize failed: %v\n", err)
+		return
+	}
+
+	// Write response
+	w.WriteHeader(http.StatusOK)
+	w.Header().Add("Content-Type", "image/jpg")
+	if sentSize, err := w.Write(respBody); err != nil || sentSize != len(respBody) {
+		log.Printf("compressImage: %v\n", err)
+	}
 }

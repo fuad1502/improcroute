@@ -15,7 +15,7 @@ func ConvertPngToJpg(inputBuffer []byte) ([]byte, error) {
 	inputBufferC := (*C.uchar)(&inputBuffer[0])
 	inputSizeC := (C.int)(len(inputBuffer))
 	outputSizePointerC := (*C.int)(unsafe.Pointer(&outputSize))
-	outputBufferC := C.pngToJpg(inputBufferC, inputSizeC, outputSizePointerC)
+	outputBufferC := C.toJpg(inputBufferC, inputSizeC, outputSizePointerC)
 	return C.GoBytes(unsafe.Pointer(outputBufferC), (C.int)(outputSize)), nil
 }
 
@@ -29,5 +29,15 @@ func ResizeImage(inputBuffer []byte, width int, height int) ([]byte, error) {
 
 	outputBufferC := C.resizeImage(inputBufferC, inputSizeC, widthC, heightC, outputSizePointerC)
 
+	return C.GoBytes(unsafe.Pointer(outputBufferC), (C.int)(outputSize)), nil
+}
+
+func CompressImage(inputBuffer []byte, quality int) ([]byte, error) {
+	var outputSize int
+	inputBufferC := (*C.uchar)(&inputBuffer[0])
+	inputSizeC := (C.int)(len(inputBuffer))
+	outputSizePointerC := (*C.int)(unsafe.Pointer(&outputSize))
+	qualityC := (C.int)(quality)
+	outputBufferC := C.compressImage(inputBufferC, inputSizeC, qualityC, outputSizePointerC)
 	return C.GoBytes(unsafe.Pointer(outputBufferC), (C.int)(outputSize)), nil
 }
