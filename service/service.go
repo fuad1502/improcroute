@@ -38,6 +38,15 @@ func (service *ImprocrouteService) Shutdown() {
 	service.server.Shutdown(context.Background())
 }
 
+func checkMimeType(headerMimeTypes []string, validMimeTypes map[string]bool) bool {
+	for _, mimeType := range headerMimeTypes {
+		if _, ok := validMimeTypes[mimeType]; !ok {
+			return false
+		}
+	}
+	return true
+}
+
 // pngToJpeg route handler. Convert an image from PNG format to JPG.
 //
 // Accepted MIME types: image/png
@@ -47,8 +56,10 @@ func (service *ImprocrouteService) Shutdown() {
 // Parameters: none
 func pngToJpeg(w http.ResponseWriter, r *http.Request) {
 	// Check if MIME type valid
-	if len(r.Header) != 1 && r.Header["Content-Type"][0] != "image/png" {
+	validMimeTypes := map[string]bool{"image/png": true}
+	if !checkMimeType(r.Header["Content-Type"], validMimeTypes) {
 		http.Error(w, "error", http.StatusBadRequest)
+		log.Printf("pngToJpeg: invalid mime type\n")
 		return
 	}
 
