@@ -6,14 +6,15 @@
 #include <opencv4/opencv2/imgproc.hpp>
 
 cv::Mat decodeWrapper(unsigned char *fileBytes, int fileSize);
-unsigned char *encodeWrapper(const cv::Mat &image, const char* extension, int* size);
+unsigned char *encodeWrapper(const cv::Mat &image, const char *extension,
+                             int *size, int quality = 95);
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-unsigned char *pngToJpg(unsigned char *inputBytes, int inputSize,
-                        int *outputSize) {
+unsigned char *toJpg(unsigned char *inputBytes, int inputSize,
+                     int *outputSize) {
   auto inputImage = decodeWrapper(inputBytes, inputSize);
   if (inputImage.data == NULL) {
     return nullptr;
@@ -32,6 +33,15 @@ unsigned char *resizeImage(unsigned char *inputBytes, int inputSize, int width,
   return encodeWrapper(outputImage, ".png", outputSize);
 }
 
+unsigned char *compressImage(unsigned char *inputBytes, int inputSize,
+                             int quality, int *outputSize) {
+  auto inputImage = decodeWrapper(inputBytes, inputSize);
+  if (inputImage.data == NULL) {
+    return nullptr;
+  }
+  return encodeWrapper(inputImage, ".jpg", outputSize, quality);
+}
+
 #ifdef __cplusplus
 }
 #endif
@@ -41,9 +51,15 @@ cv::Mat decodeWrapper(unsigned char *fileBytes, int fileSize) {
   return cv::imdecode(inputArray, cv::IMREAD_UNCHANGED);
 }
 
-unsigned char *encodeWrapper(const cv::Mat &image, const char* extension, int* size) {
+unsigned char *encodeWrapper(const cv::Mat &image, const char *extension,
+                             int *size, int quality) {
+  std::vector<int> flags;
+  if (strcmp(extension, ".jpg") == 0 || strcmp(extension, ".jpeg")) {
+    flags.push_back(cv::IMWRITE_JPEG_QUALITY);
+    flags.push_back(quality);
+  }
   std::vector<uchar> vec;
-  cv::imencode(extension, image, vec);
+  cv::imencode(extension, image, vec, flags);
   unsigned char *bytes =
       (unsigned char *)malloc(sizeof(unsigned char) * vec.size());
   memcpy((void *)bytes, (void *)vec.data(), sizeof(unsigned char) * vec.size());
