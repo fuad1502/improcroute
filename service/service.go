@@ -3,7 +3,11 @@ package service
 import (
 	"context"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
+
+	"github.com/fuad1502/improcroute/service/imgproc"
 )
 
 // ImprocrouteService encapsultes all the necessary functionalities of our
@@ -42,7 +46,34 @@ func (service *ImprocrouteService) Shutdown() {
 //
 // Parameters: none
 func pngToJpeg(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "PngToJpeg");
+	// Check if MIME type valid
+	if len(r.Header) != 1 && r.Header["Content-Type"][0] != "image/png" {
+		http.Error(w, "error", http.StatusBadRequest)
+		return
+	}
+
+	// TODO: Check parameters
+
+	// Process
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "error", http.StatusInternalServerError)
+		log.Printf("pngToJpeg: cannot read body: %v\n", err)
+		return
+	}
+	respBody, err := imgproc.ConvertPngToJpg(body)
+	if err != nil {
+		http.Error(w, "error", http.StatusInternalServerError)
+		log.Printf("pngToJpeg: conversion failed: %v\n", err)
+		return
+	}
+
+	// Write response
+	w.WriteHeader(http.StatusOK)
+	w.Header().Add("Content-Type", "image/jpg")
+	if sentSize, err := w.Write(respBody); err != nil || sentSize != len(respBody) {
+		log.Printf("pngToJpeg: %v\n", err)
+	}
 }
 
 // resizeImage route handler. Resize an image based on the supplied percentage
