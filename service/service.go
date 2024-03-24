@@ -19,7 +19,7 @@ type ImprocrouteService struct {
 
 // addHandlers add all required handlers to the service.
 func (service *ImprocrouteService) addHandlers() {
-	service.handler.HandleFunc("/PngToJpeg", pngToJpeg)
+	service.handler.HandleFunc("/PngToJpg", pngToJpg)
 	service.handler.HandleFunc("/ResizeImage", resizeImage)
 	service.handler.HandleFunc("/CompressImage", compressImage)
 }
@@ -54,7 +54,7 @@ func checkMimeType(headerMimeTypes []string, validMimeTypes map[string]bool) boo
 // Returned MIME types: image/jpg
 //
 // Parameters: none
-func pngToJpeg(w http.ResponseWriter, r *http.Request) {
+func pngToJpg(w http.ResponseWriter, r *http.Request) {
 	// Check if MIME type valid
 	validMimeTypes := map[string]bool{"image/png": true}
 	if !checkMimeType(r.Header["Content-Type"], validMimeTypes) {
@@ -92,7 +92,7 @@ func pngToJpeg(w http.ResponseWriter, r *http.Request) {
 //
 // Returned MIME types: image/png
 //
-// Parameters: `percentage` float
+// Parameters: `width` int REQUIRED, `height` int REQUIRED
 func resizeImage(w http.ResponseWriter, r *http.Request) {
 	// Check if MIME type valid
 	validMimeTypes := map[string]bool{"image/png": true, "image/jpg": true, "image/jpeg": true}
@@ -159,7 +159,7 @@ func resizeImage(w http.ResponseWriter, r *http.Request) {
 //
 // Returned MIME types: image/jpg, image/jpeg
 //
-// Parameters: `quality` int [0-100]
+// Parameters: `quality` int [0-100] REQUIRED
 func compressImage(w http.ResponseWriter, r *http.Request) {
 	// Check if MIME type valid
 	validMimeTypes := map[string]bool{"image/png": true, "image/jpg": true, "image/jpeg": true}

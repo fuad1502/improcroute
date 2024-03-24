@@ -82,7 +82,7 @@ func callApiWithFile(t *testing.T, route string, inputFilePath string, mimeType 
 
 // Tests pngJpeg handler.
 func TestPngJpeg(t *testing.T) {
-	outputBuffer := callApiWithFile(t, "PngToJpeg", "test_resource/input.png", "image/png", map[string]string{})
+	outputBuffer := callApiWithFile(t, "PngToJpg", "test_resource/input.png", "image/png", map[string]string{})
 
 	refOutputBuffer, err := os.ReadFile("test_resource/ref_png_to_jpg.jpg")
 	if err != nil {
