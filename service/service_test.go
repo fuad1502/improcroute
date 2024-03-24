@@ -28,6 +28,11 @@ func (portGetter *PortGetter) getUnusedPort() int {
 var portGetter = PortGetter{lowestUnusedPort: 8080}
 var waitServerStartDurationMilis time.Duration = 500
 
+// callApiWithFile is a convenient wrapper function for calling the API at
+// `route`, using the file specified by `inputFilePath` as the request body.
+// Query string parameters can be given through `parameters`. If successful,
+// the function returns the response body. If not successful, it will terminate
+// early.
 func callApiWithFile(t *testing.T, route string, inputFilePath string, mimeType string, parameters map[string]string) []byte {
 	t.Parallel()
 	var logBuffer bytes.Buffer

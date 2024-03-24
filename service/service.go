@@ -42,6 +42,8 @@ func (service *ImprocrouteService) Shutdown() {
 	service.server.Shutdown(context.Background())
 }
 
+// checkMimeType is a utility function to check whether `headerMimeTypes` is in
+// `validMimeTypes`
 func checkMimeType(headerMimeTypes []string, validMimeTypes map[string]bool) bool {
 	for _, mimeType := range headerMimeTypes {
 		if _, ok := validMimeTypes[mimeType]; !ok {
