@@ -1,6 +1,6 @@
 # improcroute
 
-This project is made to complete the job test assignment for backend developer
+This project was made to complete the job test assignment for backend developer
 position @ubersnap.
 
 ## Build & deploy instructions
@@ -24,7 +24,7 @@ make
 make test
 
 # Run the server
-IPR_PORT=8080 IPR_CORS_ORIGIN=http://localhost:8081 ./build/improcroute
+IPR_PORT=8080 IPR_CORS_ORIGIN=\* ./build/improcroute
 ```
 
 `IPR_PORT` specify which port to install the service to. `IPR_CORS_ORIGIN` specify allowed origins.
@@ -36,12 +36,12 @@ IPR_PORT=8080 IPR_CORS_ORIGIN=http://localhost:8081 ./build/improcroute
 podman build -t improcroute .
 
 # Run
-podman run -d -p 127.0.0.1:8080:8080 -e IPR_PORT=8080 -e IPR_CORS_ORIGIN=http://localhost:8081 improcroute
+podman run -d -p 127.0.0.1:8080:8080 -e IPR_PORT=8080 -e IPR_CORS_ORIGIN=\* improcroute
 ```
 
 Alternatively, use the docker image that I've pushed to dockerhub:
 ```sh
-podman run -d -p 127.0.0.1:8080:8080 -e IPR_PORT=8080 -e IPR_CORS_ORIGIN=http://localhost:8081 fuad1502/improcroute
+podman run -d -p 127.0.0.1:8080:8080 -e IPR_PORT=8080 -e IPR_CORS_ORIGIN=\* fuad1502/improcroute
 ```
 
 ## Demo Client
@@ -53,4 +53,4 @@ open http://localhost:8081
 ```
 
 Make sure to run the server too, and ensure the `IPR_CORS_ORIGIN` environment
-variable is set to client's origin (http://localhost:8081).
+variable includes the client's origin (http://localhost:8081).
