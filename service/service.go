@@ -76,7 +76,7 @@ func pngToJpg(w http.ResponseWriter, r *http.Request) {
 	reporter := errorreporter.ErrorReporter{FuncName: "pngToJpg"}
 	// Check if MIME type valid
 	validMimeTypes := map[string]bool{"image/png": true}
-	if !checkMimeType(r.Header["Content-Type"], validMimeTypes) {
+	if len(r.Header["Content-Type"]) == 0 || !checkMimeType(r.Header["Content-Type"], validMimeTypes) {
 		reporter.Report(w, http.StatusBadRequest, fmt.Errorf("invalid MIME type"))
 		return
 	}
@@ -113,7 +113,7 @@ func resizeImage(w http.ResponseWriter, r *http.Request) {
 	reporter := errorreporter.ErrorReporter{FuncName: "resizeImage"}
 	// Check if MIME type valid
 	validMimeTypes := map[string]bool{"image/png": true, "image/jpg": true, "image/jpeg": true}
-	if !checkMimeType(r.Header["Content-Type"], validMimeTypes) {
+	if len(r.Header["Content-Type"]) == 0 || !checkMimeType(r.Header["Content-Type"], validMimeTypes) {
 		reporter.Report(w, http.StatusBadRequest, fmt.Errorf("invalid MIME type"))
 		return
 	}
@@ -163,7 +163,7 @@ func compressImage(w http.ResponseWriter, r *http.Request) {
 	reporter := errorreporter.ErrorReporter{FuncName: "compressImage"}
 	// Check if MIME type valid
 	validMimeTypes := map[string]bool{"image/png": true, "image/jpg": true, "image/jpeg": true}
-	if !checkMimeType(r.Header["Content-Type"], validMimeTypes) {
+	if len(r.Header["Content-Type"]) == 0 || !checkMimeType(r.Header["Content-Type"], validMimeTypes) {
 		reporter.Report(w, http.StatusBadRequest, fmt.Errorf("invalid MIME type"))
 		return
 	}
