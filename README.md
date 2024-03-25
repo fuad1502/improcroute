@@ -54,3 +54,27 @@ open http://localhost:8081
 
 Make sure to run the server too, and ensure the `IPR_CORS_ORIGIN` environment
 variable includes the client's origin (http://localhost:8081).
+
+## API
+
+### `POST /PngToJpg`
+Converts a PNG file to JPG.
+- Request MIME types: image/png
+- Response MIME types: image/jpg
+- Query string parameters: none
+
+### `POST /ResizeImage`
+Resize the given image to the specified width and height. The resulting image
+is converted to PNG regardless of the original format.
+- Request MIME types: image/png, image/jpg, image/jpeg
+- Response MIME types: image/png
+- Query string parameters: `width int` REQUIRED, `height int` REQUIRED
+
+### `POST /CompressImage`
+Compress the given image using JPEG compression with the specified quality
+value. Lower quality value results in lower quality image, but higher
+compression ratio. The resulting image is converted to JPG regardless of the
+original format.
+- Request MIME types: image/png, image/jpg, image/jpeg
+- Response MIME types: image/jpg
+- Query string parameters: `quality int` [0-100] REQUIRED
