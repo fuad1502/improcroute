@@ -8,6 +8,7 @@ import (
 	"math"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 
 	"github.com/fuad1502/improcroute/service/errorreporter"
@@ -23,9 +24,9 @@ type ImprocrouteService struct {
 
 // addHandlers add all required handlers to the service.
 func (service *ImprocrouteService) addHandlers() {
-	service.handler.HandleFunc("/PngToJpg", pngToJpg)
-	service.handler.HandleFunc("/ResizeImage", resizeImage)
-	service.handler.HandleFunc("/CompressImage", compressImage)
+	service.handler.HandleFunc("/PngToJpg", addCorsMiddleware(pngToJpg))
+	service.handler.HandleFunc("/ResizeImage", addCorsMiddleware(resizeImage))
+	service.handler.HandleFunc("/CompressImage", addCorsMiddleware(compressImage))
 }
 
 // Start adds all required handlers and starts the service at the specified
@@ -40,6 +41,17 @@ func (service *ImprocrouteService) Start(addr string) {
 // Shutdown shuts down the service.
 func (service *ImprocrouteService) Shutdown() {
 	service.server.Shutdown(context.Background())
+}
+
+func addCorsMiddleware(handler http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Access-Control-Allow-Origin", os.Getenv("IPR_CORS_ORIGIN"))
+		w.Header().Add("Access-Control-Allow-Headers", "*")
+		w.Header().Add("Access-Control-Allow-Methods", "POST, OPTIONS, GET")
+		if r.Method == "GET" || r.Method == "POST" {
+			handler(w, r)
+		}
+	}
 }
 
 // checkMimeType is a utility function to check whether `headerMimeTypes` is in
