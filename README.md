@@ -29,6 +29,9 @@ IPR_PORT=8080 IPR_CORS_ORIGIN=\* ./build/improcroute
 
 `IPR_PORT` specify which port to install the service to. `IPR_CORS_ORIGIN` specify allowed origins.
 
+Note that the test will try to bind to port 8080, 8081, and 8082, ensure that
+those ports are free before testing.
+
 ### Using Docker
 
 ```sh
