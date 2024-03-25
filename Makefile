@@ -1,8 +1,6 @@
 .PHONY: build
 build: cvwrapper/build/libcvwrapper.a
-	go build
-	mkdir -p build
-	mv improcroute build/improcroute
+	go build -o build/improcroute
 
 cvwrapper/build/libcvwrapper.a: cvwrapper/cvwrapper.cpp cvwrapper/cvwrapper.h
 	cd cvwrapper && mkdir -p build && cd build && cmake .. && make

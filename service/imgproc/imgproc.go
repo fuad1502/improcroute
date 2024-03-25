@@ -1,7 +1,6 @@
 package imgproc
 
-// #cgo pkg-config: opencv4
-// #cgo LDFLAGS: -L../../cvwrapper/build -lcvwrapper -lstdc++
+// #cgo LDFLAGS: -L../../cvwrapper/build -lcvwrapper -lopencv_core -lopencv_imgproc -lopencv_imgcodecs -lstdc++
 // #cgo CFLAGS: -I../../cvwrapper/
 // #include "cvwrapper.h"
 import "C"
