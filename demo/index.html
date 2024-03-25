@@ -1,0 +1,110 @@
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>imgprocroute test</title>
+	<style>
+		label {
+			display: inline-block;
+			width: 5em;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>imgprocroute demo</h1>
+	<form>
+		<ul>
+			<li>
+				<label>Route: </label>
+				<select>
+					<option>PngToJpg</option>
+					<option>ResizeImage</option>
+					<option>CompressImage</option>
+				</select>
+			</li>
+			<li>
+				<label>File: </label>
+				<input type="file">
+			</li>
+			<li>
+				<label>Width: </label>
+				<input type="text" name="width">
+			</li>
+			<li>
+				<label>Height: </label>
+				<input type="text" name="height">
+			</li>
+			<li>
+				<label>Quality: </label>
+				<input type="text" name="quality">
+			</li>
+			<li>
+				<button type="submit">Submit</button>
+			</li>
+		</ul>
+	</form>
+	<h2>Output:</h2>
+	<p></p>
+	<img src="">
+	<script>
+		const api = "http://localhost:8080/"
+		document.querySelector('form').addEventListener('submit', async function (event) {
+			event.preventDefault();
+			const input = document.querySelector('input');
+			const route = document.querySelector('select').value;
+			let queryString = "";
+			if (route == "ResizeImage") {
+				const width = document.querySelector('input[name="width"]').value;
+				const height = document.querySelector('input[name="height"]').value;
+				queryString = "?width=" + width + "&height=" + height;
+			} else if (route == "CompressImage") {
+				const quality = document.querySelector('input[name="quality"]').value;
+				queryString = "?quality=" + quality;
+			}
+			const url = api + route + queryString;
+			let init = {
+				method: 'POST',
+				body: input.files[0]
+			}
+			const response = await fetch(url, init);
+			if (response.status == 200) {
+				const payload = await response.blob();
+				let payloadUrl = window.URL.createObjectURL(payload);
+				let a = document.createElement('a');
+				a.href = payloadUrl;
+				a.download = "output";
+				document.body.appendChild(a);
+				a.click();
+				a.remove();
+				const output = document.querySelector('p');
+				output.innerHTML = 'File downloaded!';
+			} else {
+				const output = document.querySelector('p');
+				const payload = await response.text();
+				output.innerHTML = payload;
+			}
+		});
+		function disableInputs(route) {
+			const width = document.querySelector('input[name="width"]');
+			const height = document.querySelector('input[name="height"]');
+			const quality = document.querySelector('input[name="quality"]');
+			if (route == 'PngToJpg') {
+				width.disabled = true;
+				height.disabled = true;
+				quality.disabled = true;
+			} else if (route == "ResizeImage") {
+				width.disabled = false;
+				height.disabled = false;
+				quality.disabled = true;
+			} else if (route == "CompressImage") {
+				width.disabled = true;
+				height.disabled = true;
+				quality.disabled = false;
+			}
+		};
+		document.querySelector('select').addEventListener('change', function (event) {
+			disableInputs(event.target.value);
+		});
+		disableInputs(document.querySelector('select').value);
+	</script>
+</body>

@@ -1,6 +1,7 @@
 # imgprocroute
 
-This project is made to complete the job test assignment for backend developer position @ubersnap.
+This project is made to complete the job test assignment for backend developer
+position @ubersnap.
 
 ## Build & deploy instructions
 
@@ -8,7 +9,7 @@ This project is made to complete the job test assignment for backend developer p
 
 #### Debian
 
-```
+```sh
 # Install dependencies
 sudo apt install libopencv-dev cmake
 
@@ -21,9 +22,18 @@ make
 make test
 
 # Run the server
-./build/improcroute
+IPR_PORT=8080 IPR_CORS_ORIGIN=http://localhost:8081 ./build/improcroute
 ```
 
 ### Using Docker
 
-## Test Example
+## Demo Client
+
+```sh
+cd demo
+go run .&
+open http://localhost:8081
+```
+
+Make sure to run the server too, and set the `IPR_CORS_ORIGIN` environment
+variable to client's origin.
