@@ -45,6 +45,7 @@ podman run -d -p 127.0.0.1:8080:8080 -e IPR_PORT=8080 -e IPR_CORS_ORIGIN=\* fuad
 ```
 
 ## Demo Client
+![](doc/demo.png)
 
 ```sh
 cd demo
